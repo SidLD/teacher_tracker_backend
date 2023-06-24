@@ -35,21 +35,14 @@ const userSchema = mongoose.Schema(
       required: true,
       trim: true,
       index: true,
-      enum: ["admin", "student", "superadmin"],
+      enum: ["student", "teacher", "superadmin"],
     },
-    status: {
-      type: String,
-      default: "pending",
-      trim: true,
-      required: true,
-      enum: ["pending", "approved", "rejected"],
-    },
-    recentAccess: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Exam",
-      }
-    ]
+    // recentAccess: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Exam",
+    //   }
+    // ]
   },
   {
     timestamps: true,

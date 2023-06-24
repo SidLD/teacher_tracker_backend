@@ -15,6 +15,12 @@ app.use(bodyParser.json(), urlencodedParser);
 app.use(cors());
 app.use(express.json());
 
+
+//Api
+const userAPI = require('./api/User');
+app.use(userAPI)
+
+
 app.get('*', async function(req, res){
   res.status(404).send({message:"URI does not exist"});
 });

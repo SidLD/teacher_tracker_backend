@@ -8,13 +8,16 @@ const {
   login,
   approveUser,
   fetchUser,
-  addStatus,
+  addUserStatus,
   removeStatus,
-  updateUser
+  updateUser,
+  getUserStatus
 } = require("../controllers/UserController");
 
-app.post("/removeUserStatus", removeStatus)
-app.post("/addUserStatus", addStatus)
+app.get("/status", getUserStatus)
+app.delete("/status", removeStatus)
+app.put("/status", addUserStatus)
+
 app.post("/register", register);
 app.post("/login", login)
 app.post("/approveUser", approveUser)

@@ -103,23 +103,25 @@ const deleteUser = async (req, res) => {
 //categoryId
 //position
 //description
-const addStatus = async (req, res) => {
+const addUserStatus = async (req, res) => {
     const params = req.body
     try {
         const user = await User.findOne({_id: params.userId})
         if(user.status){
-            user.status = [...user.status, {
+            user.status = [
+                ...user.status, {
                 category: params.categoryId,
                 position: params.position,
                 description: params.description,
-                date: new Date()
-            }]
+                date: params.date
+                }
+            ]
         }else{
             user.status = [{
                 category: params.categoryId,
                 position: params.position,
                 description: params.description,
-                date: new Date()
+                date: params.date
             }
             ]
         }
@@ -183,9 +185,23 @@ const updateUser = async (req, res) => {
         return res.status(400).send({data: error.message})
     }
 }
-
+const getUserStatus = async (req, res) => {
+    const params = req.query
+    try {
+        const user = await User.findOne({_id: new mongoose.Types.ObjectId(params.userId)})
+        if(user){
+            return res.status(200).send({data: user.status})
+        }else{
+            return res.status(400).send({data: "User Not Found"})
+        }
+        
+    } catch (error) {
+        return res.status(400).send({data: error.message})
+    }
+}
+exports.getUserStatus = getUserStatus
 exports.removeStatus = removeStatus
-exports.addStatus = addStatus
+exports.addUserStatus = addUserStatus
 exports.fetchUser = fetchUser
 exports.approveUser = approveUser
 exports.login = login

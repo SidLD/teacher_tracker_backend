@@ -18,7 +18,9 @@ app.use(express.json());
 
 //Api
 const userAPI = require('./api/User');
+const categoryAPI = require('./api/Category')
 app.use(userAPI)
+app.use(categoryAPI)
 
 
 app.get('*', async function(req, res){

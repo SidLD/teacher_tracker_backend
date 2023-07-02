@@ -1,8 +1,8 @@
 
 const User = require("../schemas/userSchema");
 const bcrypt = require('bcrypt')
-const checkUser = async ({email, schoolId}) => {
-    const user = await User.findOne({email: email, schoolId: schoolId})
+const getUser = async (params) => {
+    const user = await User.findOne(params)
     return user;
 }
 const createUser = async (params) => {
@@ -18,13 +18,24 @@ const createUser = async (params) => {
         gender: params.gender,
         role: params.role,
         age: params.age,
-        status: "pending",
+        isApprove: false,
     });
     return await dbUser.save()
    } catch (error) {
         return error
    }
 }
+const updateUser = async (params) => {
+    //Does not update role and schoolId
+    const user = await User.findOne({schoolId: params.schoolId})
+    user.email = params.email ? params.email : user.email
+    user.firstName = params.firstName ? params.firstName : user.firstName
+    user.lastName = params.lastName ? params.lastName : user.lastName
+    user.middleName = params.middleName ? params.middleName : user.middleName
+    user.isApprove = params.isApprove ? params.isApprove : user.isApprove
+    return await user.save();
+}
 
-exports.checkUser = checkUser;
+exports.updateUser = updateUser;
+exports.getUser = getUser;
 exports.createUser = createUser;

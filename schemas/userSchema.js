@@ -30,6 +30,11 @@ const userSchema = mongoose.Schema(
       min: 1,
       max: 100,
     },
+    batch: {
+      type: Number,
+      min : 1000,
+      max : 9999,
+    },
     role: {
       type: String,
       required: true,
@@ -37,6 +42,21 @@ const userSchema = mongoose.Schema(
       index: true,
       enum: ["student", "teacher", "superadmin"],
     },
+    isApprove: {
+      type: Boolean,
+      required: true
+    },
+    status: [
+      {
+        category: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Exam",
+        },
+        position: String,
+        description: String,
+        date: Date
+      }
+    ]
     // recentAccess: [
     //   {
     //     type: mongoose.Schema.Types.ObjectId,

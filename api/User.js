@@ -11,7 +11,10 @@ const {
   addUserStatus,
   removeStatus,
   updateUser,
-  getUserStatus
+  getUserStatus,
+  getPendingUser,
+  deleteUser,
+  fetchUsers
 } = require("../controllers/UserController");
 
 app.get("/status", getUserStatus)
@@ -20,8 +23,14 @@ app.put("/status", addUserStatus)
 
 app.post("/register", register);
 app.post("/login", login)
-app.post("/approveUser", approveUser)
 app.get("/user", fetchUser)
 app.put("/user", updateUser)
+app.delete("/user", deleteUser)
+
+app.get("/users", fetchUsers)
+
+
+app.get("/user/approve", getPendingUser)
+app.put("/user/approve", approveUser)
 
 module.exports = app;

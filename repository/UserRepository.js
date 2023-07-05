@@ -18,6 +18,7 @@ const createUser = async (params) => {
         gender: params.gender,
         role: params.role,
         age: params.age,
+        batch: params.batch,
         isApprove: false,
     });
     return await dbUser.save()
@@ -25,17 +26,6 @@ const createUser = async (params) => {
         return error
    }
 }
-const updateUser = async (params) => {
-    //Does not update role and schoolId
-    const user = await User.findOne({schoolId: params.schoolId})
-    user.email = params.email ? params.email : user.email
-    user.firstName = params.firstName ? params.firstName : user.firstName
-    user.lastName = params.lastName ? params.lastName : user.lastName
-    user.middleName = params.middleName ? params.middleName : user.middleName
-    user.isApprove = params.isApprove ? params.isApprove : user.isApprove
-    return await user.save();
-}
 
-exports.updateUser = updateUser;
 exports.getUser = getUser;
 exports.createUser = createUser;

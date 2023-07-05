@@ -1,5 +1,4 @@
 const { default: mongoose } = require('mongoose');
-const { param } = require('../api/Category');
 const { getUser, createUser } = require('../repository/UserRepository');
 const User = require('../schemas/userSchema')
 const bcrypt = require('bcrypt')
@@ -25,32 +24,36 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     const params = req.body
     try {
-        const user = await User.findOne({schoolId: params.schoolId, isApprove: true});
+        const user = await User.findOne({schoolId: params.schoolId});
         if(user){
             if(bcrypt.compare(user.password, params.password)){
-                const payload = {
-                    id: user._id,
-                    firstName: user.firstName,
-                    middleName: user.middleName,
-                    lastName: user.lastName,
-                    role: user.role,
-                    schoolId: user.schoolId,
-                  };
-                  jwt.sign(
-                    payload,
-                    process.env.JWT_SECRET,
-                    { expiresIn: 86400 },
-                    (err, token) => {
-                      if (err) {
-                        res.status(400).send({ message: err });
-                      } else {
-                        res.status(201).send({
-                          data: "Success",
-                          token: "Bearer " + token,
-                        });
-                      }
-                    }
-                  );
+                if(user.isApprove) {
+                    const payload = {
+                        id: user._id,
+                        firstName: user.firstName,
+                        middleName: user.middleName,
+                        lastName: user.lastName,
+                        role: user.role,
+                        schoolId: user.schoolId,
+                      };
+                      jwt.sign(
+                        payload,
+                        process.env.JWT_SECRET,
+                        { expiresIn: 86400 },
+                        (err, token) => {
+                          if (err) {
+                            res.status(400).send({ message: err });
+                          } else {
+                            res.status(201).send({
+                              data: "Success",
+                              token: "Bearer " + token,
+                            });
+                          }
+                        }
+                      );
+                }else{
+                    return res.status(400).send({data: "User Pending Approval"})
+                }
             }else{
                 return res.status(400).send({data: "Incorrect Password"})
             }
@@ -64,13 +67,18 @@ const login = async (req, res) => {
 const approveUser = async (req, res) => {
     const params = req.body
     try {
-        params.isApprove = true
-        const updatedUser = await updateUser(params)
-        if(updatedUser){
-            return res.status(200).send({data: updatedUser})
-        }else{
-            return res.status(400).send({data: "User not approved"})  
-        }
+        let updatedUser = await User.findOne({_id:new  mongoose.Types.ObjectId(params.userId)})
+        updatedUser.isApprove = true
+        updatedUser.save()
+        .then((result) => {
+            result.password = undefined
+            result.email = undefined
+            return res.status(200).send({data: result}) 
+        })
+        .catch((err) => {
+            return res.status(400).send({data: err.message})  
+        })
+        
     } catch (error) {
         return res.status(400).send({data: error.message})   
     }
@@ -92,11 +100,37 @@ const fetchUser = async (req, res) => {
         return res.status(400).send({data: error.message})
     }
 } 
+const fetchUsers = async (req, res) => {
+    try {
+        const params = req.query;
+        const result = await User.where(params);
+        if(result.length > 0){
+           const data = result.map((user) => {
+                let temp = {
+                    firstName : user.firstName,
+                    lastName : user.lastName,
+                    _id : user._id,
+                    batch : user.batch,
+                    middleName: user.middleName
+                }
+                return temp
+            })
+            return res.status(200).send({data: data})
+        }else{
+            return res.status(200).send({data: "User Not Found"})
+        }
+    } catch (error) {
+        return res.status(400).send({data: error.message})
+    }
+} 
 const deleteUser = async (req, res) => {
     try {
-        
+        const params = req.body;
+        const result = await User.deleteOne({_id: new mongoose.Types.ObjectId(params.userId)})
+        console.log(result)
+        return res.status(200).send({data: result})
     } catch (error) {
-        
+        return res.status(400).send({data: error.message})
     }
 }
 //userId
@@ -199,6 +233,26 @@ const getUserStatus = async (req, res) => {
         return res.status(400).send({data: error.message})
     }
 }
+const getPendingUser = async (req, res) => {
+    try {
+        
+        let result = await User.where({isApprove:false});
+        if(result.length > 0){
+            result = result.map((temp) => {
+                temp.password = undefined
+                temp.status = undefined
+                return temp;
+            })
+        }
+        return res.status(200).send({data: result})
+    } catch (error) {
+        return res.status(400).send({data: error.message})
+    }
+} 
+
+exports.fetchUsers = fetchUsers
+exports.deleteUser = deleteUser;
+exports.getPendingUser = getPendingUser;
 exports.getUserStatus = getUserStatus
 exports.removeStatus = removeStatus
 exports.addUserStatus = addUserStatus

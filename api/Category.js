@@ -1,4 +1,5 @@
 const express = require("express");
+const verifyToken = require('../utilities/verifyToken')
 const { 
     category, 
     getCategory, 
@@ -8,12 +9,12 @@ const {
 const app = express();
 
 // const verifyToken = require("../Utilities/VerifyToken");
-app.delete("/category", removeCategory)
+app.delete("/category", verifyToken, removeCategory)
 // app.post("/updateStatus",updateStatus)
 // app.post("/removeStatus", removeStatus)
-app.post("/category", category);
-app.get("/category", getCategory)
-app.put("/category",updateCategory)
+app.post("/category", verifyToken, category);
+app.get("/category", verifyToken, getCategory)
+app.put("/category", verifyToken,updateCategory)
 // app.post("/addStatus", addStatus)
 
 module.exports = app;

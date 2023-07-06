@@ -25,9 +25,15 @@ const login = async (req, res) => {
     const params = req.body
     try {
         const user = await User.findOne({schoolId: params.schoolId});
+        
         if(user){
-            if(bcrypt.compare(user.password, params.password)){
-                if(user.isApprove) {
+            if(!user.isApprove){
+                return res.status(400).send({data: "User Pending Approval"})
+            }else{
+                bcrypt.compare(params.password, user.password)
+                .then((data) => {
+                    console.log(data)
+                   if(data){
                     const payload = {
                         id: user._id,
                         firstName: user.firstName,
@@ -51,11 +57,13 @@ const login = async (req, res) => {
                           }
                         }
                       );
-                }else{
-                    return res.status(400).send({data: "User Pending Approval"})
-                }
-            }else{
-                return res.status(400).send({data: "Incorrect Password"})
+                   }else{
+                        return res.status(400).send({data: "Incorrect Password"})
+                   }
+                })
+                .catch((err) => {
+                    return res.status(400).send({data: err.message})
+                })
             }
         }else{
             return res.status(400).send({data: "User not Found"})

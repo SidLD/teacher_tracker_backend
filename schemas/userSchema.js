@@ -50,7 +50,7 @@ const userSchema = mongoose.Schema(
       {
         category: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Exam",
+          ref: "Category",
         },
         position: String,
         description: String,

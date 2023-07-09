@@ -45,7 +45,7 @@ const login = async (req, res) => {
                       jwt.sign(
                         payload,
                         process.env.JWT_SECRET,
-                        { expiresIn: 86400 },
+                        { expiresIn: "1d" },
                         (err, token) => {
                           if (err) {
                             res.status(400).send({ message: err });
@@ -141,60 +141,6 @@ const deleteUser = async (req, res) => {
         return res.status(400).send({data: error.message})
     }
 }
-//userId
-//categoryId
-//position
-//description
-const addUserStatus = async (req, res) => {
-    const params = req.body
-    try {
-        const user = await User.findOne({_id: params.userId})
-        if(user.status){
-            user.status = [
-                ...user.status, {
-                category: params.categoryId,
-                position: params.position,
-                description: params.description,
-                date: params.date
-                }
-            ]
-        }else{
-            user.status = [{
-                category: params.categoryId,
-                position: params.position,
-                description: params.description,
-                date: params.date
-            }
-            ]
-        }
-        let result = await user.save()
-        result.password = undefined
-        result.email = undefined
-        return res.status(200).send({data: result})
-    } catch (error) {
-        return res.status(400).send({data: error.message})
-    }
-}
-//userId
-//statusId
-const removeStatus = async (req, res) => {
-    const params = req.body
-    try {
-        const user = await User.findOne({_id: params.userId})
-        const newStatus = user.status.filter((t) => {
-            if(t._id.toString() !== params.statusId){
-                return t
-            }
-        })
-        user.status = newStatus
-        let result = await user.save()
-        result.password = undefined
-        result.email = undefined
-        return res.status(200).send({data: result})
-    } catch (error) {
-        return res.status(400).send({data: error.message})
-    }
-}
 const updateUser = async (req, res) => {
     const params = req.body
     try {
@@ -227,10 +173,70 @@ const updateUser = async (req, res) => {
         return res.status(400).send({data: error.message})
     }
 }
+
+
+//userId
+//categoryId
+//position
+//description
+const addUserStatus = async (req, res) => {
+    const params = req.body
+    try {
+        const user = await User.findOne({_id: params.userId})
+        if(user.status){
+            user.status = [
+                ...user.status, {
+                    category: params.categoryId,
+                    detail: params.detail,
+                    date: params.date
+                }
+            ]
+        }else{
+            user.status = [{
+                category: params.categoryId,
+                detail: params.detail,
+                date: params.date
+            }
+            ]
+        }
+        let result = await user.save()
+        result.password = undefined
+        result.email = undefined
+        return res.status(200).send({data: result})
+    } catch (error) {
+        return res.status(400).send({data: error.message})
+    }
+}
+//userId
+//statusId
+const removeStatus = async (req, res) => {
+    const params = req.body
+    try {
+        const user = await User.findOne({_id: params.userId})
+        const newStatus = user.status.filter((t) => {
+            if(t._id.toString() !== params.statusId){
+                return t
+            }
+        })
+        user.status = newStatus
+        let result = await user.save()
+        result.password = undefined
+        result.email = undefined
+        return res.status(200).send({data: result})
+    } catch (error) {
+        return res.status(400).send({data: error.message})
+    }
+}
 const getUserStatus = async (req, res) => {
     const params = req.query
     try {
         const user = await User.findOne({_id: new mongoose.Types.ObjectId(params.userId)})
+            .populate({
+                path: "status.category",
+                select: ['_id', 'name']
+            })
+            .sort('createdAt')
+            .exec().then( async (docs) => docs);
         if(user){
             return res.status(200).send({data: user.status})
         }else{
@@ -238,9 +244,13 @@ const getUserStatus = async (req, res) => {
         }
         
     } catch (error) {
+        console.log(error)
         return res.status(400).send({data: error.message})
     }
 }
+
+
+
 const getPendingUser = async (req, res) => {
     try {
         

@@ -52,8 +52,7 @@ const userSchema = mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "Category",
         },
-        position: String,
-        description: String,
+        detail: String,
         date: Date
       }
     ]

@@ -186,14 +186,14 @@ const addUserStatus = async (req, res) => {
         if(user.status){
             user.status = [
                 ...user.status, {
-                    category: params.categoryId,
+                    category: new mongoose.Types.ObjectId(params.categoryId),
                     detail: params.detail,
                     date: params.date
                 }
             ]
         }else{
             user.status = [{
-                category: params.categoryId,
+                category: new mongoose.Types.ObjectId(params.categoryId),
                 detail: params.detail,
                 date: params.date
             }
@@ -212,17 +212,24 @@ const addUserStatus = async (req, res) => {
 const removeStatus = async (req, res) => {
     const params = req.body
     try {
-        const user = await User.findOne({_id: params.userId})
+        let user = await User.findOne({_id: params.userId})
         const newStatus = user.status.filter((t) => {
-            if(t._id.toString() !== params.statusId){
+            if(params.statusId != t._id){
                 return t
             }
         })
         user.status = newStatus
-        let result = await user.save()
-        result.password = undefined
-        result.email = undefined
-        return res.status(200).send({data: result})
+        user.save()
+        .then((result) => {
+            result.password = undefined
+            result.email = undefined
+            return res.status(200).send({data: {acknowledge: true}})
+        })
+        .catch((err) => {
+            console.log(err)
+            return res.status(400).send({data: err.message})
+        })
+       
     } catch (error) {
         return res.status(400).send({data: error.message})
     }
@@ -232,11 +239,16 @@ const getUserStatus = async (req, res) => {
     try {
         const user = await User.findOne({_id: new mongoose.Types.ObjectId(params.userId)})
             .populate({
+                path: "status",
+                select: ["_id", "detail", "category", "date"]
+            })
+            .populate({
                 path: "status.category",
                 select: ['_id', 'name']
             })
-            .sort('createdAt')
             .exec().then( async (docs) => docs);
+            user.email = undefined
+            user.password = undefined
         if(user){
             return res.status(200).send({data: user.status})
         }else{

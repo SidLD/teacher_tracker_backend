@@ -55,7 +55,11 @@ const userSchema = mongoose.Schema(
         detail: String,
         date: Date
       }
-    ]
+    ],
+    currentStatus : {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category"
+    }
     // recentAccess: [
     //   {
     //     type: mongoose.Schema.Types.ObjectId,

@@ -100,6 +100,7 @@ const fetchUser = async (req, res) => {
         const result = await getUser(payload);
         if(result){
             result.password = undefined
+            result.status = undefined
             return res.status(200).send({data: result})
         }else{
             return res.status(400).send({data: "User Not Found"})
@@ -110,11 +111,51 @@ const fetchUser = async (req, res) => {
 } 
 const fetchUsers = async (req, res) => {
     try {
-        const params = req.query;
-        const result = await User.where(params);
+        let params = req.query;
+        if(params.search) {
+            params = {
+                $or: [
+                    {$and: [
+                        { isApprove: true , 
+                            role: params.role , 
+                            currentStatus : 
+                            new mongoose.Types.ObjectId(params.currentStatus)},
+                        { lastName: params.search}
+                    ]},
+                    {$and: [
+                        { isApprove: true , 
+                            role: params.role , 
+                            currentStatus : 
+                            new mongoose.Types.ObjectId(params.currentStatus)},
+                        { firstName: params.search}
+                    ]}
+                ],
+            }
+        }
+        else if(params.currentStatus){
+            params = { 
+                isApprove: true , 
+                role: params.role , 
+                currentStatus : new mongoose.Types.ObjectId(params.currentStatus)
+            }
+
+        }else{
+            params = { 
+                isApprove: true , 
+                role: params.role , 
+            }
+        }
+        console.log(params)
+        const result = await User.where(params)
+        .populate({
+            path: "currentStatus",
+            select: ['_id', 'name']
+        })
+        .exec().then( async (docs) => docs);
         if(result.length > 0){
            const data = result.map((user) => {
                 let temp = {
+                    currentStatus: user.currentStatus,
                     firstName : user.firstName,
                     lastName : user.lastName,
                     _id : user._id,
@@ -122,12 +163,14 @@ const fetchUsers = async (req, res) => {
                     middleName: user.middleName
                 }
                 return temp
+                // 64ad359ae1f4280877c9f6c0
             })
             return res.status(200).send({data: data})
         }else{
             return res.status(200).send({data: "User Not Found"})
         }
     } catch (error) {
+        console.log(error)
         return res.status(400).send({data: error.message})
     }
 } 
@@ -182,7 +225,7 @@ const updateUser = async (req, res) => {
 const addUserStatus = async (req, res) => {
     const params = req.body
     try {
-        const user = await User.findOne({_id: params.userId})
+        let user = await User.findOne({_id: params.userId})
         if(user.status){
             user.status = [
                 ...user.status, {
@@ -199,11 +242,15 @@ const addUserStatus = async (req, res) => {
             }
             ]
         }
+        //Sorting Status and adding Current Status
+        user.status.sort((a,b)=>a.date.getTime()-b.date.getTime());
+        user.currentStatus = new mongoose.Types.ObjectId(user.status[user.status.length - 1].category)
         let result = await user.save()
         result.password = undefined
         result.email = undefined
         return res.status(200).send({data: result})
     } catch (error) {
+        console.log(error)
         return res.status(400).send({data: error.message})
     }
 }
@@ -219,6 +266,8 @@ const removeStatus = async (req, res) => {
             }
         })
         user.status = newStatus
+        user.status.sort((a,b)=>a.date.getTime()-b.date.getTime());
+        user.currentStatus = new mongoose.Types.ObjectId(user.status[user.status.length].category)
         user.save()
         .then((result) => {
             result.password = undefined
@@ -260,8 +309,6 @@ const getUserStatus = async (req, res) => {
         return res.status(400).send({data: error.message})
     }
 }
-
-
 
 const getPendingUser = async (req, res) => {
     try {

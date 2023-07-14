@@ -32,7 +32,6 @@ const login = async (req, res) => {
             }else{
                 bcrypt.compare(params.password, user.password)
                 .then((data) => {
-                    console.log(data)
                    if(data){
                     const payload = {
                         id: user._id,
@@ -145,7 +144,6 @@ const fetchUsers = async (req, res) => {
                 role: params.role , 
             }
         }
-        console.log(params)
         const result = await User.where(params)
         .populate({
             path: "currentStatus",
@@ -178,7 +176,6 @@ const deleteUser = async (req, res) => {
     try {
         const params = req.body;
         const result = await User.deleteOne({_id: new mongoose.Types.ObjectId(params.userId)})
-        console.log(result)
         return res.status(200).send({data: result})
     } catch (error) {
         return res.status(400).send({data: error.message})
@@ -199,13 +196,11 @@ const updateUser = async (req, res) => {
             await user.save()
             .then(result => {
                 result.password = undefined
-                console.log(result)
                 return res.status(200).send({data: result})
             })
             .catch(err => {
                 return res.status(200).send({data: err.message})
             });
-            console.log(user)
            
         }else{
             

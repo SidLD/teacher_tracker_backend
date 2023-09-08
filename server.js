@@ -15,7 +15,7 @@ app.use(bodyParser.json(), urlencodedParser);
 const corsOptions = {
     origin: "https://ohsp-student-tracker.onrender.com" // frontend URI (ReactJS)
 }
-app.use(cors(corsOptions));
+app.use(cors("*"));
 app.use(express.json());
 
 

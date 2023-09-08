@@ -2,7 +2,8 @@ const { default: mongoose } = require('mongoose');
 const { getUser, createUser } = require('../repository/UserRepository');
 const User = require('../schemas/userSchema')
 const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
+const { addAttempt, canAttempt, getUserAttempt } = require('../utilities/bucket');
 
 const register = async (req, res) => {
     const params = req.body;
@@ -24,48 +25,55 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     const params = req.body
     try {
-        const user = await User.findOne({schoolId: params.schoolId});
-        
-        if(user){
-            if(!user.isApprove){
-                return res.status(400).send({data: "User Pending Approval"})
+        if(canAttempt(params.email)){
+            const user = await User.findOne({email: params.email});
+            if(user){
+                if(!user.isApprove){
+                    return res.status(400).send({data: "User Pending Approval"})
+                }else{
+                    bcrypt.compare(params.password, user.password)
+                    .then((data) => {
+                       if(data){
+                        const payload = {
+                            id: user._id,
+                            firstName: user.firstName,
+                            middleName: user.middleName,
+                            lastName: user.lastName,
+                            role: user.role,
+                            schoolId: user.schoolId,
+                          };
+                          jwt.sign(
+                            payload,
+                            process.env.JWT_SECRET,
+                            { expiresIn: "3hr" },
+                            (err, token) => {
+                              if (err) {
+                                res.status(400).send({ message: err });
+                              } else {
+                                res.status(201).send({
+                                  data: "Success",
+                                  token: "Bearer " + token,
+                                });
+                              }
+                            }
+                          );
+                       }else{
+                            return res.status(400).send({data: "Incorrect Password "})
+                       }
+                    })
+                    .catch((err) => {
+                        return res.status(400).send({data: err.message})
+                    })
+                }
             }else{
-                bcrypt.compare(params.password, user.password)
-                .then((data) => {
-                   if(data){
-                    const payload = {
-                        id: user._id,
-                        firstName: user.firstName,
-                        middleName: user.middleName,
-                        lastName: user.lastName,
-                        role: user.role,
-                        schoolId: user.schoolId,
-                      };
-                      jwt.sign(
-                        payload,
-                        process.env.JWT_SECRET,
-                        { expiresIn: "1d" },
-                        (err, token) => {
-                          if (err) {
-                            res.status(400).send({ message: err });
-                          } else {
-                            res.status(201).send({
-                              data: "Success",
-                              token: "Bearer " + token,
-                            });
-                          }
-                        }
-                      );
-                   }else{
-                        return res.status(400).send({data: "Incorrect Password"})
-                   }
-                })
-                .catch((err) => {
-                    return res.status(400).send({data: err.message})
-                })
+                return res.status(400).send({data: "Incorrect Login, Attempt "+ getUserAttempt(params.email).attempt})
             }
         }else{
-            return res.status(400).send({data: "User not Found"})
+            return res.status(400).send({
+                data: "No More Attempts " +
+                " come again in " +
+                getUserAttempt(params.email).historyAttempt + " hrs"
+            })
         }
     } catch (error) {
         return res.status(400).send({message: error.message})
@@ -111,44 +119,71 @@ const fetchUser = async (req, res) => {
 const fetchUsers = async (req, res) => {
     try {
         let params = req.query;
-        if(params.search) {
-            params = {
+        
+        const limit = params?.limit 
+        const start = params?.start
+        delete params.limit
+        delete params.start
+        let query
+        if(params.currentStatus){
+            if(params.search){
+                query = {
+                    $or: [
+                        {$and: [
+                            { isApprove: true , 
+                                role: params.role , 
+                                currentStatus :  new mongoose.Types.ObjectId(params.currentStatus)},
+                            { lastName: params.search}
+                        ]},
+                        {$and: [
+                            { isApprove: true , 
+                                role: params.role , 
+                                currentStatus : new mongoose.Types.ObjectId(params.currentStatus)},
+                            { firstName: params.search}
+                        ]}
+                    ],
+                }
+            }else{
+                query = {
+                    $or: [
+                        {$and: [
+                            { isApprove: true , 
+                                role: params.role , 
+                                currentStatus :  new mongoose.Types.ObjectId(params.currentStatus)}
+                        ]},
+                        {$and: [
+                            { isApprove: true , 
+                                role: params.role , 
+                                currentStatus : new mongoose.Types.ObjectId(params.currentStatus)}
+                        ]}
+                    ],
+                }
+            }
+        }else if(params.search != ""){
+            query = {
                 $or: [
                     {$and: [
-                        { isApprove: true , 
-                            role: params.role , 
-                            currentStatus : 
-                            new mongoose.Types.ObjectId(params.currentStatus)},
+                        { isApprove: true ,  role: params.role }, 
                         { lastName: params.search}
                     ]},
                     {$and: [
-                        { isApprove: true , 
-                            role: params.role , 
-                            currentStatus : 
-                            new mongoose.Types.ObjectId(params.currentStatus)},
+                        { isApprove: true ,  role: params.role },
                         { firstName: params.search}
                     ]}
                 ],
             }
-        }
-        else if(params.currentStatus){
-            params = { 
-                isApprove: true , 
-                role: params.role , 
-                currentStatus : new mongoose.Types.ObjectId(params.currentStatus)
-            }
-
         }else{
-            params = { 
-                isApprove: true , 
-                role: params.role , 
+            query = {
+                isApprove: true ,  role: params.role 
             }
         }
-        const result = await User.where(params)
+        const result = await User.where(query)
         .populate({
             path: "currentStatus",
             select: ['_id', 'name']
         })
+        .limit(limit)
+        .skip(start)
         .exec().then( async (docs) => docs);
         if(result.length > 0){
            const data = result.map((user) => {
@@ -262,7 +297,7 @@ const removeStatus = async (req, res) => {
         })
         user.status = newStatus
         user.status.sort((a,b)=>a.date.getTime()-b.date.getTime());
-        user.currentStatus = new mongoose.Types.ObjectId(user.status[user.status.length].category)
+        user.currentStatus = new mongoose.Types.ObjectId(user.status[user.status.length - 1])
         user.save()
         .then((result) => {
             result.password = undefined
@@ -275,6 +310,7 @@ const removeStatus = async (req, res) => {
         })
        
     } catch (error) {
+        console.log(error)
         return res.status(400).send({data: error.message})
     }
 }

@@ -13,7 +13,7 @@ const dbURI = process.env.ATLAS_URI;
 const urlencodedParser = bodyParser.urlencoded({extended:false})
 app.use(bodyParser.json(), urlencodedParser);
 const corsOptions = {
-    origin: "https://ohsp-student-tracker.onrender.com/" // frontend URI (ReactJS)
+    origin: "https://ohsp-student-tracker.onrender.com" // frontend URI (ReactJS)
 }
 app.use(cors(corsOptions));
 app.use(express.json());

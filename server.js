@@ -12,7 +12,10 @@ const port = process.env.PORT;
 const dbURI = process.env.ATLAS_URI;
 const urlencodedParser = bodyParser.urlencoded({extended:false})
 app.use(bodyParser.json(), urlencodedParser);
-app.use(cors());
+const corsOptions = {
+    origin: "http://localhost:3000" // frontend URI (ReactJS)
+}
+app.use(cors(corsOptions));
 app.use(express.json());
 
 

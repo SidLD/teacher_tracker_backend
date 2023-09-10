@@ -22,11 +22,13 @@ const register = async (req, res) => {
         return res.status(400).send({data: error.message})
     }
 }
+
 const login = async (req, res) => {
     const params = req.body
     try {
-        if(canAttempt(params.email)){
-            const user = await User.findOne({email: params.email});
+        if(canAttempt(params.schoolId)){
+            const user = await User.findOne({schoolId: params.schoolId});
+            console.log(user)
             if(user){
                 if(!user.isApprove){
                     return res.status(400).send({data: "User Pending Approval"})
@@ -58,7 +60,7 @@ const login = async (req, res) => {
                             }
                           );
                        }else{
-                            return res.status(400).send({data: "Incorrect Password "})
+                            return res.status(400).send({data: "Incorrect SchoolId or Password "})
                        }
                     })
                     .catch((err) => {
@@ -66,7 +68,7 @@ const login = async (req, res) => {
                     })
                 }
             }else{
-                return res.status(400).send({data: "Incorrect Login, Attempt "+ getUserAttempt(params.email).attempt})
+                return res.status(400).send({data: "Incorrect Login, Attempt "+ getUserAttempt(params.schoolId).attempt})
             }
         }else{
             return res.status(400).send({
@@ -76,7 +78,8 @@ const login = async (req, res) => {
             })
         }
     } catch (error) {
-        return res.status(400).send({message: error.message})
+        console.log(error)
+        return res.status(400).send({data: error.message})
     }
 }
 const approveUser = async (req, res) => {

@@ -27,7 +27,6 @@ const login = async (req, res) => {
     try {
         if(canAttempt(params.email)){
             const user = await User.findOne({email: params.email});
-            console.log(user)
             if(user){
                 if(!user.isApprove){
                     return res.status(400).send({data: "User Pending Approval"})
@@ -179,6 +178,11 @@ const fetchUsers = async (req, res) => {
                 isApprove: true ,  role: params.role 
             }
         }
+        if(req.user.role === "superadmin"){
+            query = {
+                role: "teacher"
+            }
+        }
         const result = await User.where(query)
         .populate({
             path: "currentStatus",
@@ -187,6 +191,7 @@ const fetchUsers = async (req, res) => {
         .limit(limit)
         .skip(start)
         .exec().then( async (docs) => docs);
+        console.log(result)
         if(result.length > 0){
            const data = result.map((user) => {
                 let temp = {

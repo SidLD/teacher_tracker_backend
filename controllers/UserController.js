@@ -9,8 +9,7 @@ const register = async (req, res) => {
     const params = req.body;
     try {
         const ifEmail = await getUser({email: params.email})
-        const ifSchoolId = await getUser({ schoolId: params.schoolId})
-        if(ifEmail || ifSchoolId) {
+        if(ifEmail) {
             res.status(400).send({data:"User already Exist"})
         }else{
             const data = await createUser(params);
@@ -26,8 +25,8 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     const params = req.body
     try {
-        if(canAttempt(params.schoolId)){
-            const user = await User.findOne({schoolId: params.schoolId});
+        if(canAttempt(params.email)){
+            const user = await User.findOne({email: params.email});
             console.log(user)
             if(user){
                 if(!user.isApprove){
@@ -42,7 +41,7 @@ const login = async (req, res) => {
                             middleName: user.middleName,
                             lastName: user.lastName,
                             role: user.role,
-                            schoolId: user.schoolId,
+                            email: user.email,
                           };
                           jwt.sign(
                             payload,
@@ -60,7 +59,7 @@ const login = async (req, res) => {
                             }
                           );
                        }else{
-                            return res.status(400).send({data: "Incorrect SchoolId or Password "})
+                            return res.status(400).send({data: "Incorrect Email or Password "})
                        }
                     })
                     .catch((err) => {
@@ -68,7 +67,7 @@ const login = async (req, res) => {
                     })
                 }
             }else{
-                return res.status(400).send({data: "Incorrect Login, Attempt "+ getUserAttempt(params.schoolId).attempt})
+                return res.status(400).send({data: "Incorrect Login, Attempt "+ getUserAttempt(params.email).attempt})
             }
         }else{
             return res.status(400).send({

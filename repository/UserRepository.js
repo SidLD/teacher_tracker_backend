@@ -12,7 +12,6 @@ const createUser = async (params) => {
         firstName: params.firstName,
         lastName: params.lastName,
         middleName: params.middleName !== undefined ? params.middleName : "",
-        schoolId: params.schoolId,
         email: params.email,
         password: hashedPassword,
         gender: params.gender,

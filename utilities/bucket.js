@@ -6,15 +6,15 @@ Date.prototype.addHours = (h) => {
     return this;
   }
 
-const addAttempt = (schoolId) => {
-    if(users[schoolId]){
-        users[schoolId] = {
-            attempt: users[schoolId].attempt + 1,
-            historyAttempt : users[schoolId].historyAttempt,
-            attemptDate : users[schoolId].attemptDate
+const addAttempt = (email) => {
+    if(users[email]){
+        users[email] = {
+            attempt: users[email].attempt + 1,
+            historyAttempt : users[email].historyAttempt,
+            attemptDate : users[email].attemptDate
         }
     }else{
-        users[schoolId] = {
+        users[email] = {
             attempt: 1,
             historyAttempt : 1,
             attemptDate :  new Date()
@@ -22,41 +22,41 @@ const addAttempt = (schoolId) => {
     }
 }
 
-const deleteUser = (schoolId) => {
-    delete users[schoolId];
+const deleteUser = (email) => {
+    delete users[email];
 }
 
-const canAttempt = (schoolId) => {
+const canAttempt = (email) => {
     try {
-        if(users[schoolId]){
-            const attempts = users[schoolId].attempt;
+        if(users[email]){
+            const attempts = users[email].attempt;
             let isAttemptAvailable = attempts < maxAttempt 
             
             if(!isAttemptAvailable) {
-                const prevAttemptedDate = new Date(users[schoolId].attemptDate)
+                const prevAttemptedDate = new Date(users[email].attemptDate)
                 
                 if(prevAttemptedDate <= new Date()){
                     return false
                 }else{
-                    let historyAttempt = users[schoolId].historyAttempt * 2
+                    let historyAttempt = users[email].historyAttempt * 2
                     let thisDate = new Date()
                     thisDate.setHours((thisDate.getHours() * historyAttempt))
 
-                    users[schoolId] = {
+                    users[email] = {
                         attempt: 1,
                         historyAttempt :historyAttempt,
                         attemptDate: thisDate
                     }
-                    console.log(users[schoolId])
+                    console.log(users[email])
                     
                     return true
                 }
             }else{
-                addAttempt(schoolId)
+                addAttempt(email)
                 return true
             }
         }else{
-            addAttempt(schoolId)
+            addAttempt(email)
             return true
         }
     } catch (error) {
@@ -64,8 +64,8 @@ const canAttempt = (schoolId) => {
     }
 }
 
-const getUserAttempt = (schoolId) => {
-    return users[schoolId]
+const getUserAttempt = (email) => {
+    return users[email]
 }
 
 exports.addAttempt = addAttempt

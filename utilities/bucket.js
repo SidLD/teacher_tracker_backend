@@ -7,23 +7,31 @@ Date.prototype.addHours = (h) => {
   }
 
 const addAttempt = (email) => {
-    if(users[email]){
-        users[email] = {
-            attempt: users[email].attempt + 1,
-            historyAttempt : users[email].historyAttempt,
-            attemptDate : users[email].attemptDate
+    try {
+        if(users[email]){
+            users[email] = {
+                attempt: users[email].attempt + 1,
+                historyAttempt : users[email].historyAttempt,
+                attemptDate : users[email].attemptDate
+            }
+        }else{
+            users[email] = {
+                attempt: 1,
+                historyAttempt : 1,
+                attemptDate :  new Date()
+            }
         }
-    }else{
-        users[email] = {
-            attempt: 1,
-            historyAttempt : 1,
-            attemptDate :  new Date()
-        }
+    } catch (error) {
+        console.log(error)
     }
 }
 
 const deleteUser = (email) => {
-    delete users[email];
+    try {
+        delete users[email];
+    } catch (error) {
+        console.log(error)
+    }
 }
 
 const canAttempt = (email) => {

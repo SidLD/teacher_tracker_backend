@@ -27,6 +27,7 @@ const login = async (req, res) => {
     try {
         if(canAttempt(params.email)){
             const user = await User.findOne({email: params.email});
+            console.log(user)
             if(user){
                 if(!user.isApprove){
                     return res.status(400).send({data: "User Pending Approval"})

@@ -29,43 +29,40 @@ const login = async (req, res) => {
             const user = await User.findOne({email: params.email});
             console.log(user)
             if(user){
-                if(!user.isApprove){
-                    return res.status(400).send({data: "User Pending Approval"})
-                }else{
-                    bcrypt.compare(params.password, user.password)
-                    .then((data) => {
-                       if(data){
-                        const payload = {
-                            id: user._id,
-                            firstName: user.firstName,
-                            middleName: user.middleName,
-                            lastName: user.lastName,
-                            role: user.role,
-                            email: user.email,
-                          };
-                          jwt.sign(
-                            payload,
-                            process.env.JWT_SECRET,
-                            { expiresIn: "3hr" },
-                            (err, token) => {
-                              if (err) {
-                                res.status(400).send({ message: err });
-                              } else {
-                                res.status(201).send({
-                                  data: "Success",
-                                  token: "Bearer " + token,
-                                });
-                              }
-                            }
-                          );
-                       }else{
-                            return res.status(400).send({data: "Incorrect Email or Password "})
-                       }
-                    })
-                    .catch((err) => {
-                        return res.status(400).send({data: err.message})
-                    })
-                }
+                bcrypt.compare(params.password, user.password)
+                .then((data) => {
+                   if(data){
+                    const payload = {
+                        id: user._id,
+                        firstName: user.firstName,
+                        middleName: user.middleName,
+                        lastName: user.lastName,
+                        role: user.role,
+                        email: user.email,
+                      };
+                      jwt.sign(
+                        payload,
+                        process.env.JWT_SECRET,
+                        { expiresIn: "3hr" },
+                        (err, token) => {
+                          if (err) {
+                            res.status(400).send({ message: err });
+                          } else {
+                            res.status(201).send({
+                              data: "Success",
+                              token: "Bearer " + token,
+                            });
+                          }
+                        }
+                      );
+                   }else{
+                        return res.status(400).send({data: "Incorrect Email or Password "})
+                   }
+                })
+                .catch((err) => {
+                    return res.status(400).send({data: err.message})
+                })
+            
             }else{
                 return res.status(400).send({data: "Incorrect Login, Attempt "+ getUserAttempt(params.email).attempt})
             }

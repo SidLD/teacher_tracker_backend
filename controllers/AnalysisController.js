@@ -9,7 +9,7 @@ const getAnalysis = async (req, res) => {
         let sTemp = []
         const categoryies = await Category.where(params)
         await Promise.all(categoryies.map( async (c) => {
-            const users = await User.count({currentStatus: new mongoose.Types.ObjectId(c._id)})
+            const users = await User.count({currentStatus: new mongoose.Types.ObjectId(c._id), isApprove: true})
             cTemp.push(c.name)
             sTemp.push(users)
         }))

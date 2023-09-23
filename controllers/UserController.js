@@ -39,6 +39,7 @@ const login = async (req, res) => {
                         lastName: user.lastName,
                         role: user.role,
                         email: user.email,
+                        isApprove: user.isApprove
                       };
                       jwt.sign(
                         payload,
@@ -97,28 +98,45 @@ const approveUser = async (req, res) => {
         return res.status(400).send({data: error.message})   
     }
 }
+
 const fetchUser = async (req, res) => {
     try {
-        const params = req.query;
-        const payload = {
-            _id: new mongoose.Types.ObjectId(params.userId)
-        }
-        const result = await getUser(payload);
-        if(result){
-            result.password = undefined
-            result.status = undefined
-            return res.status(200).send({data: result})
+        if(req.user.role != "student"){
+            const params = req.query;
+            const payload = {
+                _id: new mongoose.Types.ObjectId(params.userId)
+            }
+            const result = await getUser(payload);
+            if(result){
+                result.password = undefined
+                result.status = undefined
+                result.email = undefined
+                return res.status(200).send({data: result})
+            }else{
+                return res.status(400).send({data: "User Not Found"})
+            }
         }else{
-            return res.status(400).send({data: "User Not Found"})
+            const params = req.query;
+            const payload = {
+                _id: new mongoose.Types.ObjectId(req.user.id)
+            }
+            const result = await getUser(payload);
+            if(result){
+                result.password = undefined
+                result.status = undefined
+                return res.status(200).send({data: result})
+            }else{
+                return res.status(400).send({data: "User Not Found"})
+            }
         }
     } catch (error) {
         return res.status(400).send({data: error.message})
     }
 } 
+
 const fetchUsers = async (req, res) => {
     try {
         let params = req.query;
-        
         const limit = params?.limit 
         const start = params?.start
         delete params.limit
@@ -189,7 +207,6 @@ const fetchUsers = async (req, res) => {
         .limit(limit)
         .skip(start)
         .exec().then( async (docs) => docs);
-        console.log(result)
         if(result.length > 0){
            const data = result.map((user) => {
                 let temp = {

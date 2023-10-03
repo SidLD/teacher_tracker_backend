@@ -57,8 +57,8 @@ const login = async (req, res) => {
                         }
                       );
                    }else{
-                        return res.status(400).send({data: "Incorrect Email or Password "})
-                   }
+                    return res.status(400).send({data: "Incorrect Login, Attempt "+ getUserAttempt(params.email).attempt})
+                }
                 })
                 .catch((err) => {
                     return res.status(400).send({data: err.message})
@@ -142,13 +142,14 @@ const fetchUsers = async (req, res) => {
         delete params.limit
         delete params.start
         let query
+        console.log(params)
         if(params.currentStatus){
             if(params.search){
                 query = {
                     $or: [
                         {$and: [
                             { isApprove: true , 
-                                role: params.role , 
+                                role: params.role, 
                                 currentStatus :  new mongoose.Types.ObjectId(params.currentStatus)},
                             { lastName: params.search}
                         ]},
@@ -157,7 +158,13 @@ const fetchUsers = async (req, res) => {
                                 role: params.role , 
                                 currentStatus : new mongoose.Types.ObjectId(params.currentStatus)},
                             { firstName: params.search}
-                        ]}
+                         ]},
+                         {$and: [
+                            { isApprove: true , 
+                                role: params.role, 
+                                currentStatus :  new mongoose.Types.ObjectId(params.currentStatus)},
+                            { batch: params.search}
+                        ]},
                     ],
                 }
             }else{
@@ -186,7 +193,12 @@ const fetchUsers = async (req, res) => {
                     {$and: [
                         { isApprove: true ,  role: params.role },
                         { firstName: params.search}
-                    ]}
+                    ]},
+                    {$and: [
+                        { isApprove: true ,  role: params.role },
+                        { batch: params.search}
+                    ]},
+                    
                 ],
             }
         }else{
@@ -231,9 +243,18 @@ const fetchUsers = async (req, res) => {
 } 
 const deleteUser = async (req, res) => {
     try {
-        const params = req.body;
-        const result = await User.deleteOne({_id: new mongoose.Types.ObjectId(params.userId)})
-        return res.status(200).send({data: result})
+        let isApprove = false;
+        const user = await User.findOne({_id:  new mongoose.Types.ObjectId(req.user.id)})
+        if((user.role == "superadmin" || user.role == "teacher") && user.isApprove) {
+            isApprove = true
+        }
+        if(isApprove){
+            const {_id} = req.body;
+            const result = await User.deleteOne({_id: new mongoose.Types.ObjectId(_id)})
+            return res.status(200).send({data: result})
+        }else{
+            return res.status(400).send({data: "Access Denied"})
+        }
     } catch (error) {
         return res.status(400).send({data: error.message})
     }

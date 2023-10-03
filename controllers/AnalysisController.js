@@ -2,6 +2,17 @@ const mongoose = require('mongoose');
 const Category = require('../schemas/categorySchema');
 const User = require('../schemas/userSchema')
 
+const countStudents = async (req, res) => {
+    const params = req.query
+    try {
+        const data = await User.where({currentStatus: new mongoose.Types.ObjectId(params.id)}).count()
+        return res.status(200).send({data: data})
+    } catch (error) {
+        console.log(error)
+        return res.status(400).send({data: error.message})
+    }
+}
+
 const getAnalysis = async (req, res) => {
     const params = req.query
     try {
@@ -22,6 +33,7 @@ const getAnalysis = async (req, res) => {
         return res.status(400).send({data: error.message})
     }
 }
+
 const getStudentsData = async (req, res) => {
     const params = req.query
     try {
@@ -91,3 +103,4 @@ const getBatchData = async (req, res) => {
 exports.getBatchData = getBatchData
 exports.getStudentsData = getStudentsData
 exports.getAnalysis = getAnalysis
+exports.countStudents = countStudents

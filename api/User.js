@@ -14,7 +14,7 @@ const {
     getUserStatus,
     getPendingUser,
     deleteUser,
-    fetchUsers
+    fetchUsers,
 } = require("../controllers/UserController");
 
 app.get("/status", verifyToken, getUserStatus)

@@ -110,7 +110,6 @@ const fetchUser = async (req, res) => {
             if(result){
                 result.password = undefined
                 result.status = undefined
-                result.email = undefined
                 return res.status(200).send({data: result})
             }else{
                 return res.status(400).send({data: "User Not Found"})

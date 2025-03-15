@@ -7,17 +7,18 @@ const getUser = async (params) => {
 }
 const createUser = async (params) => {
    try {
-    const hashedPassword = await bcrypt.hash(params.password, 10);
+    const hashedPassword = await bcrypt.hash('password', 10);
     const dbUser = new User({
         firstName: params.firstName,
         lastName: params.lastName,
         middleName: params.middleName !== undefined ? params.middleName : "",
         email: params.email,
+        contact: params.contact,
         password: hashedPassword,
+        position: params.position,
         gender: params.gender,
-        role: params.role,
+        role: 'TEACHER',
         age: params.age,
-        batch: params.batch,
         isApprove: false,
     });
     return await dbUser.save()

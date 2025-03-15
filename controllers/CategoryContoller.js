@@ -12,9 +12,9 @@ const getCategory = async (req, res) => {
     }
 }
 const category = async (req, res) => {
-    const params = req.body;
+    const {category} = req.body;
     try {
-        const data = await createCategory({name: params.category})
+        const data = await createCategory(category)
         return res.status(200).send({data: data})
     } catch (error) {
         return res.status(400).send({data: error.message})
@@ -29,24 +29,34 @@ const removeCategory = async (req, res) => {
         return res.status(400).send({data: error.message})
     }
 }
+
 const updateCategory = async (req, res) => {
     try {
-        const params = req.body
-        let data = await Category.findOne({_id: new mongoose.Types.ObjectId(params.categoryId)})
-        data.name = params.name
-        data.type = params.type
-        data.save()
-        .then((result) => {
-            return res.status(200).send({data: result})
-        })
-        .catch((err) => {
-            return res.status(400).send({data: err.message})
-        })
-    } catch (error) {
-        return res.status(400).send({data: error.message})
-    }
-}
+        const { _id, name, position } = req.body;
 
+        if (!_id || !name || position === undefined) {
+            return res.status(400).json({ error: "All fields are required." });
+        }
+
+        console.log( _id,
+            { name, position },
+            { new: true, runValidators: true } )
+        const updatedCategory = await Category.findByIdAndUpdate(
+            _id,
+            { name, position },
+            { new: true, runValidators: true } // Ensures validation and returns updated data
+        );
+
+        if (!updatedCategory) {
+            return res.status(404).json({ error: "Category not found." });
+        }
+
+        return res.status(200).json({ data: updatedCategory });
+    } catch (error) {
+        console.error("Error updating category:", error);
+        return res.status(500).json({ error: "Internal Server Error." });
+    }
+};
 
 
 // const addStatus = async (req, res) => {

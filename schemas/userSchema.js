@@ -12,9 +12,13 @@ const userSchema = mongoose.Schema(
     middleName: String,
     password: {
       type: String,
-      required: true,
+      required: false,
     },
     email: {
+      type: String,
+      required: true
+    },
+    contact: {
       type: String,
       required: true
     },
@@ -26,42 +30,21 @@ const userSchema = mongoose.Schema(
       min: 1,
       max: 100,
     },
-    batch: {
-      type: Number,
-      min : 1000,
-      max : 9999,
-    },
     role: {
       type: String,
       required: true,
       trim: true,
       index: true,
-      enum: ["student", "teacher", "superadmin"],
+      enum: ["TEACHER", "SUPERADMIN"],
     },
     isApprove: {
       type: Boolean,
       required: true
     },
-    status: [
-      {
-        category: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Category",
-        },
-        detail: String,
-        date: Date
-      }
-    ],
-    currentStatus : {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category"
+    position: {
+      type:mongoose.Schema.Types.ObjectId,
+      ref: 'Category'
     }
-    // recentAccess: [
-    //   {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: "Exam",
-    //   }
-    // ]
   },
   {
     timestamps: true,

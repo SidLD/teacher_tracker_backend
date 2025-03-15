@@ -15,9 +15,11 @@ const register = async (req, res) => {
             const data = await createUser(params);
             data.password = undefined;
             data.email = undefined
+            console.log(params)
             return res.status(200).send({data: data}) 
         }
     } catch (error) {
+        console.log(error)
         return res.status(400).send({data: error.message})
     }
 }
@@ -147,22 +149,23 @@ const fetchUsers = async (req, res) => {
                 query = {
                     $or: [
                         {$and: [
-                            { isApprove: true , 
+                            { 
+                                isApprove: true , 
                                 role: params.role, 
-                                currentStatus :  new mongoose.Types.ObjectId(params.currentStatus)},
-                            { lastName: params.search}
-                        ]},
+                                position :  new mongoose.Types.ObjectId(params.currentStatus)},
+                                { firstName: { $regex: params.search, $options: "i" } } // Case-insensitive search
+                            ]},
                         {$and: [
-                            { isApprove: true , 
+                            { 
+                                isApprove: true , 
                                 role: params.role , 
-                                currentStatus : new mongoose.Types.ObjectId(params.currentStatus)},
-                            { firstName: params.search}
-                         ]},
+                                position : new mongoose.Types.ObjectId(params.currentStatus)},
+                                { lastName: { $regex: params.search, $options: "i" } } // Case-insensitive search
+                            ]},
                          {$and: [
                             { isApprove: true , 
                                 role: params.role, 
-                                currentStatus :  new mongoose.Types.ObjectId(params.currentStatus)},
-                            { batch: params.search}
+                                position :  new mongoose.Types.ObjectId(params.currentStatus)},
                         ]},
                     ],
                 }
@@ -170,14 +173,16 @@ const fetchUsers = async (req, res) => {
                 query = {
                     $or: [
                         {$and: [
-                            { isApprove: true , 
+                            { 
+                                isApprove: true , 
                                 role: params.role , 
-                                currentStatus :  new mongoose.Types.ObjectId(params.currentStatus)}
+                                position :  new mongoose.Types.ObjectId(params.currentStatus)}
                         ]},
                         {$and: [
-                            { isApprove: true , 
+                            { 
+                                isApprove: true , 
                                 role: params.role , 
-                                currentStatus : new mongoose.Types.ObjectId(params.currentStatus)}
+                                position : new mongoose.Types.ObjectId(params.currentStatus)}
                         ]}
                     ],
                 }
@@ -187,15 +192,14 @@ const fetchUsers = async (req, res) => {
                 $or: [
                     {$and: [
                         { isApprove: true ,  role: params.role }, 
-                        { lastName: params.search}
+                        { firstName: { $regex: params.search, $options: "i" } } // Case-insensitive search
                     ]},
                     {$and: [
                         { isApprove: true ,  role: params.role },
-                        { firstName: params.search}
+                        { lastName: { $regex: params.search, $options: "i" } } // Case-insensitive search
                     ]},
                     {$and: [
-                        { isApprove: true ,  role: params.role },
-                        { batch: params.search}
+                        { isApprove: true ,  role: params.role }
                     ]},
                     
                 ],
@@ -205,33 +209,14 @@ const fetchUsers = async (req, res) => {
                 isApprove: true ,  role: params.role 
             }
         }
-        if(req.user.role === "superadmin"){
-            query = {
-                role: "teacher"
-            }
-        }
+        console.log(JSON.stringify(query))
         const result = await User.where(query)
-        .populate({
-            path: "currentStatus",
-            select: ['_id', 'name']
-        })
+        .populate('position')
         .limit(limit)
         .skip(start)
         .exec().then( async (docs) => docs);
         if(result.length > 0){
-           const data = result.map((user) => {
-                let temp = {
-                    currentStatus: user.currentStatus,
-                    firstName : user.firstName,
-                    lastName : user.lastName,
-                    _id : user._id,
-                    batch : user.batch,
-                    middleName: user.middleName
-                }
-                return temp
-                // 64ad359ae1f4280877c9f6c0
-            })
-            return res.status(200).send({data: data})
+            return res.status(200).send({data: result})
         }else{
             return res.status(200).send({data: "User Not Found"})
         }
@@ -316,7 +301,7 @@ const addUserStatus = async (req, res) => {
         }
         //Sorting Status and adding Current Status
         user.status.sort((a,b)=>a.date.getTime()-b.date.getTime());
-        user.currentStatus = new mongoose.Types.ObjectId(user.status[user.status.length - 1].category)
+        user.position = new mongoose.Types.ObjectId(user.status[user.status.length - 1].category)
         let result = await user.save()
         result.password = undefined
         result.email = undefined
@@ -386,7 +371,7 @@ const getUserStatus = async (req, res) => {
 const getPendingUser = async (req, res) => {
     try {
         
-        let result = await User.where({isApprove:false});
+        let result = await User.where({isApprove:false}).populate('position');
         if(result.length > 0){
             result = result.map((temp) => {
                 temp.password = undefined

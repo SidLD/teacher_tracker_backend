@@ -1,11 +1,15 @@
 const mongoose = require("mongoose");
 const categorySchema = mongoose.Schema(
   {
-    name: {
+    position: {
       type: String,
       required: true,
+      enum: ["PROF", "NON-PROF"],
     },
-    type:[String]
+    name:{
+      type: String,
+      required: true
+    }
   },
   {
     timestamps: true,

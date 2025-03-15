@@ -10,7 +10,7 @@ const app = express();
 
 app.delete("/category", verifyToken, removeCategory)
 app.post("/category", verifyToken, category);
-app.get("/category", verifyToken, getCategory)
+app.get("/category", getCategory)
 app.put("/category", verifyToken,updateCategory)
 app.get("/analysis", verifyToken, getAnalysis)
 app.get("/studentdata", verifyToken, getStudentsData)

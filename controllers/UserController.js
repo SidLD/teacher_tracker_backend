@@ -28,7 +28,7 @@ const login = async (req, res) => {
     const params = req.body
     try {
         if(canAttempt(params.email)){
-            const user = await User.findOne({email: params.email});
+            const user = await User.findOne({email: params.email, role: 'superadmin'});
             console.log(user)
             if(user){
                 bcrypt.compare(params.password, user.password)

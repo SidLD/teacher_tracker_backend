@@ -198,6 +198,7 @@ const fetchUsers = async (req, res) => {
         .populate('position')
         .limit(limit)
         .skip(start)
+        .sort({ [params.sortField]: params.sortOrder })
         .exec().then( async (docs) => docs);
         if(result.length > 0){
             return res.status(200).send({data: result})

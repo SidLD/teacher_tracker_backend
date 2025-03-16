@@ -27,7 +27,6 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     const params = req.body
     try {
-        if(canAttempt(params.email)){
             const user = await User.findOne({email: params.email, role: 'superadmin'});
             console.log(user)
             if(user){
@@ -69,13 +68,7 @@ const login = async (req, res) => {
             }else{
                 return res.status(400).send({data: "Incorrect Login, Attempt "+ getUserAttempt(params.email).attempt})
             }
-        }else{
-            return res.status(400).send({
-                data: "No More Attempts " +
-                " come again in " +
-                getUserAttempt(params.email).historyAttempt + " hrs"
-            })
-        }
+        
     } catch (error) {
         console.log(error)
         return res.status(400).send({data: error.message})
@@ -131,7 +124,7 @@ const fetchUser = async (req, res) => {
             }
         }
     } catch (error) {
-        return res.status(400).send({data: error.message})
+    return res.status(400).send({data: error.message})
     }
 } 
 

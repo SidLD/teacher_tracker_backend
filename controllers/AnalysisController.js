@@ -49,10 +49,10 @@ const getAnalysis = async (req, res) => {
 const getStudentsData = async (req, res) => {
     const params = req.query
     try {
-        const male = await User.count({role:'student', gender: 'male', isApprove: true})
-        const female = await User.count({role:'student', gender: 'female', isApprove: true})
-        const totalStudents = await User.count({role:'student', isApprove: true})
-        const totalTeachers = await User.count({role:'teacher', isApprove: true})
+        const male = await User.count({role:'TEACHER', gender: 'male', isApprove: true})
+        const female = await User.count({role:'TEACHER', gender: 'female', isApprove: true})
+        const totalStudents = await User.count({role:'TEACHER', isApprove: true})
+        const totalTeachers = await User.count({role:'TEACHER', isApprove: true})
 
         const data = {
             totalMale: male,

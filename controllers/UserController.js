@@ -153,19 +153,14 @@ const fetchUsers = async (req, res) => {
                                 isApprove: true , 
                                 role: params.role, 
                                 position :  new mongoose.Types.ObjectId(params.currentStatus)},
-                                { firstName: { $regex: params.search, $options: "i" } } // Case-insensitive search
+                                { firstName:  params.search, $options: "i" } // Case-insensitive search
                             ]},
                         {$and: [
                             { 
                                 isApprove: true , 
                                 role: params.role , 
                                 position : new mongoose.Types.ObjectId(params.currentStatus)},
-                                { lastName: { $regex: params.search, $options: "i" } } // Case-insensitive search
-                            ]},
-                         {$and: [
-                            { isApprove: true , 
-                                role: params.role, 
-                                position :  new mongoose.Types.ObjectId(params.currentStatus)},
+                                { lastName: params.search } // Case-insensitive search
                         ]},
                     ],
                 }
@@ -192,16 +187,12 @@ const fetchUsers = async (req, res) => {
                 $or: [
                     {$and: [
                         { isApprove: true ,  role: params.role }, 
-                        { firstName: { $regex: params.search, $options: "i" } } // Case-insensitive search
+                        { firstName: params.search } // Case-insensitive search
                     ]},
                     {$and: [
                         { isApprove: true ,  role: params.role },
-                        { lastName: { $regex: params.search, $options: "i" } } // Case-insensitive search
+                        { lastName: params.search } // Case-insensitive search
                     ]},
-                    {$and: [
-                        { isApprove: true ,  role: params.role }
-                    ]},
-                    
                 ],
             }
         }else{

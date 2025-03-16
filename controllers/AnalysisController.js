@@ -16,18 +16,30 @@ const countStudents = async (req, res) => {
 const getAnalysis = async (req, res) => {
     const params = req.query
     try {
-        let cTemp = []
-        let sTemp = []
-        const categoryies = await Category.where(params)
-        await Promise.all(categoryies.map( async (c) => {
-            const users = await User.count({currentStatus: new mongoose.Types.ObjectId(c._id), isApprove: true})
-            cTemp.push(c.name)
-            sTemp.push(users)
+        let categoryNames = []
+        let teacherCounts = []
+        
+        // Get categories based on query parameters
+        const categories = await Category.where(params)
+        
+        // For each category, count users with position matching the category ID
+        await Promise.all(categories.map(async (category) => {
+            // Count teachers with this position who are approved
+            const count = await User.count({
+                position: new mongoose.Types.ObjectId(category._id), 
+                isApprove: true,
+                role: "TEACHER" // Ensure we're only counting teachers
+            })
+            
+            categoryNames.push(category.name)
+            teacherCounts.push(count)
         }))
+        
         const data = {
-            categories : cTemp,
-            studentsData: sTemp
-        };
+            categories: categoryNames,
+            studentsData: teacherCounts // Keeping the same property name for backward compatibility
+        }
+        
         return res.status(200).send({data: data})
     } catch (error) {
         return res.status(400).send({data: error.message})

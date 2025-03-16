@@ -4,7 +4,7 @@ const categorySchema = mongoose.Schema(
     position: {
       type: String,
       required: true,
-      enum: ["PROF", "NON-PROF"],
+      enum: ["TEACHING", "NON_TEACHING"],
     },
     name:{
       type: String,

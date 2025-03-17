@@ -21,7 +21,8 @@ const getAnalysis = async (req, res) => {
         
         // Get categories based on query parameters
         const categories = await Category.where(params)
-        
+        let nonTeaching = 0;
+        let teaching = 0;
         // For each category, count users with position matching the category ID
         await Promise.all(categories.map(async (category) => {
             // Count teachers with this position who are approved
@@ -33,11 +34,22 @@ const getAnalysis = async (req, res) => {
             
             categoryNames.push(category.name)
             teacherCounts.push(count)
+
+            if(category.position == 'TEACHING'){
+                teaching += count;
+            }
+            if(category.position == 'NON_TEACHING'){
+                nonTeaching += count;
+            }
+
         }))
+
         
         const data = {
             categories: categoryNames,
-            studentsData: teacherCounts // Keeping the same property name for backward compatibility
+            studentsData: teacherCounts,
+            nonTeaching,
+            teaching
         }
         
         return res.status(200).send({data: data})

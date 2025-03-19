@@ -12,10 +12,21 @@ const register = async (req, res) => {
         if(ifEmail) {
             res.status(400).send({data:"User already Exist"})
         }else{
-            const data = await createUser(params);
+            let employeeId = '';
+            const latestUser = await User.findOne({ position: params.position })
+                .sort({ employeeId: -1 }) 
+                .limit(1);
+            if(latestUser){
+                const num = latestUser.employeeId ? (parseInt(latestUser.employeeId) + 1) : 1;
+                for (let index = 0; index < (4-num.toString().length); index++) {
+                    employeeId += '0'
+                }
+                employeeId = `${employeeId}${(num)}`
+            }
+            const data = await createUser({...params, employeeId});
             data.password = undefined;
             data.email = undefined
-            console.log(params)
+            console.log(data)
             return res.status(200).send({data: data}) 
         }
     } catch (error) {
@@ -136,7 +147,6 @@ const fetchUsers = async (req, res) => {
         delete params.limit
         delete params.start
         let query
-        console.log(params)
         if(params.currentStatus){
             if(params.search){
                 query = {
@@ -196,9 +206,7 @@ const fetchUsers = async (req, res) => {
         console.log(JSON.stringify(query))
         const result = await User.where(query)
         .populate('position')
-        .limit(limit)
-        .skip(start)
-        .sort({ [params.sortField]: params.sortOrder })
+        .sort({ 'employeeId': 1 })
         .exec().then( async (docs) => docs);
         if(result.length > 0){
             return res.status(200).send({data: result})

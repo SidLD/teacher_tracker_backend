@@ -8,16 +8,11 @@ const { addAttempt, canAttempt, getUserAttempt } = require('../utilities/bucket'
 const register = async (req, res) => {
     const params = req.body;
     try {
-        const ifEmail = await getUser({email: params.email})
-        if(ifEmail) {
-            res.status(400).send({data:"User already Exist"})
-        }else{
-            const data = await createUser(params);
+        const data = await createUser(params);
             data.password = undefined;
             data.email = undefined
             console.log(params)
             return res.status(200).send({data: data}) 
-        }
     } catch (error) {
         console.log(error)
         return res.status(400).send({data: error.message})

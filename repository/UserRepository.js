@@ -19,6 +19,8 @@ const createUser = async (params) => {
         gender: params.gender,
         role: 'TEACHER',
         age: params.age,
+        birthDate: params.birthDate,
+        employeeId: params.employeeId,
         isApprove: false,
     });
     return await dbUser.save()

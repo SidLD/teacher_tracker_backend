@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const userSchema = mongoose.Schema(
   {
+    employeeId: String,
+    birthDate: Date,
     firstName: {
       type: String,
       required: true,

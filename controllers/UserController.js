@@ -64,7 +64,7 @@ const login = async (req, res) => {
                         }
                       );
                    }else{
-                    return res.status(400).send({data: "Incorrect Login, Attempt "+ getUserAttempt(params.email).attempt})
+                    return res.status(400).send({data: "Incorrect Login "})
                 }
                 })
                 .catch((err) => {
@@ -72,7 +72,7 @@ const login = async (req, res) => {
                 })
             
             }else{
-                return res.status(400).send({data: "Incorrect Login, Attempt "+ getUserAttempt(params.email).attempt})
+                return res.status(400).send({data: "Incorrect Login "})
             }
         
     } catch (error) {
